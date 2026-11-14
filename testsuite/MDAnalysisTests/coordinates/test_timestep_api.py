@@ -833,3 +833,24 @@ class TimeTimestepNoBox:
 
         assert ts.dimensions is None
         assert ts.triclinic_dimenions is None
+
+    @pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
+    def test_set_nonfinite_box_rejected(self, ts, value):
+        with pytest.raises(ValueError, match="finite"):
+            ts.dimensions = [value, 2, 3, 90, 90, 90]
+
+    def test_set_wrong_shape_box_rejected(self, ts):
+        with pytest.raises(ValueError, match="six-element"):
+            ts.dimensions = [1, 2, 3]
+
+    @pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
+    def test_triclinic_vectors_nonfinite(self, value):
+        from MDAnalysis.lib.mdamath import triclinic_vectors
+        dim = [value, 2, 3, 90, 90, 90]
+        assert_equal(triclinic_vectors(dim), np.zeros((3, 3)))
+
+    @pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
+    def test_set_nonfinite_box_triclinic(self, ts, value):
+        ts.triclinic_dimensions = [[value, 0, 0], [0, 2, 0], [0, 0, 3]]
+        assert ts.dimensions is None
+        assert ts.triclinic_dimensions is None
