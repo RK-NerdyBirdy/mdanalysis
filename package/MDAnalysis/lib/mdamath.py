@@ -303,10 +303,23 @@ def triclinic_box(
     lx = norm(x)
     ly = norm(y)
     lz = norm(z)
-    with np.errstate(invalid="ignore"):
-        alpha = np.rad2deg(np.arccos(np.dot(y, z) / (ly * lz)))
-        beta = np.rad2deg(np.arccos(np.dot(x, z) / (lx * lz)))
-        gamma = np.rad2deg(np.arccos(np.dot(x, y) / (lx * ly)))
+    if (
+        lx <= 0.0
+        or ly <= 0.0
+        or lz <= 0.0
+        or not (np.isfinite(lx) and np.isfinite(ly) and np.isfinite(lz))
+    ):
+        return np.zeros(6, dtype=np.float32)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        alpha = np.rad2deg(
+            np.arccos(np.clip(np.dot(y, z) / (ly * lz), -1.0, 1.0))
+        )
+        beta = np.rad2deg(
+            np.arccos(np.clip(np.dot(x, z) / (lx * lz), -1.0, 1.0))
+        )
+        gamma = np.rad2deg(
+            np.arccos(np.clip(np.dot(x, y) / (lx * ly), -1.0, 1.0))
+        )
     box = np.array([lx, ly, lz, alpha, beta, gamma], dtype=np.float32)
     # Only positive edge lengths and angles in (0, 180) are allowed:
     if (
